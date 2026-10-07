@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Fake SNL Standby (test)</title>
+<style>body{font:16px system-ui;max-width:460px;margin:70px auto;padding:0 12px}
+label{display:block;margin-top:12px}input,select{padding:6px;width:100%;box-sizing:border-box}
+button{margin-top:14px;padding:10px 16px}.card{border:1px solid #888;padding:14px;margin:10px 0;cursor:pointer;border-radius:8px}
+#log{margin-top:16px;color:#064}</style></head><body>
+<h2>Fake SNL Standby (mimics the real 3-step flow)</h2>
+<div id="app"></div><div id="log"></div>
+<p><button id="reset">Reset: opens in 60 seconds</button></p>
+<script>
+const KEY='fakeOpenAt', K2='fakeSubmits';
+if(!localStorage.getItem(KEY)) localStorage.setItem(KEY, Date.now()+60000);
+const openAt=+localStorage.getItem(KEY);
+const m=document.createElement('meta'); m.name='snl-test-open'; m.content=openAt; document.head.appendChild(m);
+const app=document.getElementById('app');
+let chosen='';
+function pageChoice(){
+  app.innerHTML='<h3>Choose a standby event</h3>'+
+   '<div class="card" id="c1">DRESS REHEARSAL STANDBY - Saturday Night Live</div>'+
+   '<div class="card" id="c2">LIVE SHOW STANDBY - Saturday Night Live</div>';
+  c1.onclick=()=>pageBook('DRESS REHEARSAL'); c2.onclick=()=>pageBook('LIVE SHOW');
+}
+function pageBook(name){
+  chosen=name;
+  const open=Date.now()>=openAt;
+  app.innerHTML='<button id="back">BACK</button><h3>'+name+' STANDBY - SATURDAY NIGHT LIVE</h3>'+
+   '<label>Group size <select id="gs"><option>1</option><option>2</option></select></label>'+
+   (open?'<button id="book">BOOK STANDBY RESERVATION</button>':'<p>Registration not open yet. Reload after 10am.</p>');
+  back.onclick=pageChoice;
+  if(open) book.onclick=pageForm;
+}
+function pageForm(){
+  const g=document.getElementById('gs').value;
+  app.innerHTML='<label>First name * <input name="first" placeholder="First name"></label>'+
+   '<label>Last name * <input name="last" placeholder="Last name"></label>'+
+   '<label>Email address * <input name="email" placeholder="Email address"></label>'+
+   '<label>Group size <select name="group"><option>1</option><option>2</option></select></label>'+
+   '<button id="confirm">Confirm reservation</button>';
+  confirm.onclick=()=>{
+    const n=+(localStorage.getItem(K2)||0)+1; localStorage.setItem(K2,n);
+    const v=[...app.querySelectorAll('input,select')].map(e=>e.name+'='+e.value).join(', ');
+    log.innerHTML='Submission #'+n+' ['+chosen+'] '+v+(n>1?' — DUPLICATE (back of line)':'');
+  };
+}
+pageChoice();
+reset.onclick=()=>{localStorage.removeItem(KEY);localStorage.removeItem(K2);location.reload();};
+</script></body></html>
